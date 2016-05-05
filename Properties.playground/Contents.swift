@@ -43,7 +43,17 @@ struct LocationTrack {
     
     var length: CLLocationDistance {
         // this function should sum up all the distances between the locations in the track
-        return 1000.0 // right now it just returns 1000 (in meters, which is one kilometer).
+        if(locations.count<1){
+            return 0;
+        }
+        var lastLocation = locations[0];
+        let totalDistance = locations.reduce(0, combine: { (distanceSoFar:CLLocationDistance, thisLocation:CLLocation)-> CLLocationDistance in
+            let thisDistance = thisLocation.distanceFromLocation(lastLocation);
+            lastLocation = thisLocation
+            return distanceSoFar + thisDistance
+        })
+        
+        return totalDistance
     }
     
 }
@@ -57,6 +67,16 @@ class LocationTrackTestSuite: XCTestCase {
         let noPointsTrack = LocationTrack(locations: [])
         let expectedResult: CLLocationDistance = 0
         XCTAssertEqual(expectedResult, noPointsTrack.length, "Zero point track should have zero length.")
+    }
+    
+    func testLengthFromSFToMoraga() {
+        let locations = [CLLocation(latitude: 37.7749, longitude: 122.4194), CLLocation(latitude: 37.8349, longitude: 122.1297)]
+        let testTrack = LocationTrack(locations: locations)
+        testTrack.length
+        
+        
+        XCTAssertGreaterThan(testTrack.length, 15000)
+        XCTAssertLessThan(testTrack.length, 30000)
     }
     
     func testLengthOfTrackWithOnePoint() {
